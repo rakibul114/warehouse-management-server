@@ -38,6 +38,40 @@ async function run() {
             const product = await productCollection.findOne(query);
             res.send(product);
         });
+
+        // POST API to add item
+        app.post('/product', async (req, res) => {
+            const newProduct = req.body;
+            const result = await productCollection.insertOne(newProduct);
+            res.send(result);
+        });
+
+        // PUT API to update a product
+        app.put('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const quantity = req.body;
+            const options = { upsert: true };
+            const updateDor = {
+                // _id: id,
+                // name: product.name,
+                // price: product.price,
+                // description: product.description,
+                quantity: product.quantity,
+                // supplier: product.supplier,
+                // picture: product.picture
+            };
+            const result = await productCollection.updateOne(query, updateDor, options);
+            res.send(result);
+        });
+
+        // DELETE API to delete a product
+        app.delete('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productCollection.deleteOne(query);
+            res.send(result);
+        });
+
     }
     finally {
         
