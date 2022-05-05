@@ -46,19 +46,15 @@ async function run() {
             res.send(result);
         });
 
-        // PUT API to update a product
+        // PUT API to update a product quantity
         app.put('/product/:id', async (req, res) => {
             const id = req.params.id;
+            console.log('id',id);
+            const query = { _id: ObjectId(id) };
             const quantity = req.body;
             const options = { upsert: true };
             const updateDor = {
-                // _id: id,
-                // name: product.name,
-                // price: product.price,
-                // description: product.description,
-                quantity: product.quantity,
-                // supplier: product.supplier,
-                // picture: product.picture
+                quantity: quantity.quantity,
             };
             const result = await productCollection.updateOne(query, updateDor, options);
             res.send(result);
