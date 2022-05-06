@@ -22,6 +22,8 @@ async function run() {
     try {
         await client.connect();
         const productCollection = client.db('warehouseManagement').collection('product');
+        const itemCollection = client.db("warehouseManagement").collection('item');
+
 
         // API to get all products data
         app.get('/product', async (req, res) => {
@@ -37,7 +39,8 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const product = await productCollection.findOne(query);
             res.send(product);
-        });
+        });        
+
 
         // POST API to add item
         app.post('/product', async (req, res) => {
@@ -45,18 +48,39 @@ async function run() {
             const result = await productCollection.insertOne(newProduct);
             res.send(result);
         });
+        
+        // POST API to add input field value to quantity
+        app.put("/product/:id", async (req, res) => {
+          const id = req.params.id;
+          const updateProduct = req.body;
+          const filter = { _id: ObjectId(id) };
+          const options = { upsert: true };
+          const updateDoc = {
+            $set: {
+              quantity: updateProduct.quantity,
+            },
+          };
+          const result = await productCollection.updateOne(
+            filter,
+            updateDoc,
+            options
+          );
+          res.send(result);
+        });
+
 
         // PUT API to update a product quantity
         app.put('/product/:id', async (req, res) => {
             const id = req.params.id;
-            console.log('id',id);
-            const query = { _id: ObjectId(id) };
-            const quantity = req.body;
+            const updateQuantity = req.body;
+            const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
-            const updateDor = {
-                quantity: quantity.quantity,
+            const updateDoc = {
+              $set: {
+                quantity: updateQuantity.quantity,
+              },
             };
-            const result = await productCollection.updateOne(query, updateDor, options);
+            const result = await productCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         });
 
@@ -65,6 +89,21 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await productCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        // GET API for item collection
+        app.get('/item', async(req, res) => {
+            const query = {};
+            const cursor = itemCollection.find(query);
+            const items = await cursor.toArray();
+            res.send(items);
+        });
+
+        // POST API for Item collection
+        app.post('/item', async (req, res) => {
+            const item = req.body;
+            const result = await itemCollection.insertOne(item);
             res.send(result);
         });
 
