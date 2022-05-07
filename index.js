@@ -92,16 +92,17 @@ async function run() {
             res.send(result);
         });
 
-        // GET API for getting item collection
+        // API to get item
         app.get('/item', async (req, res) => {
-            const email = req.query.email;
+          const email = req.query.email;
             const query = {email: email};
             const cursor = itemCollection.find(query);
             const items = await cursor.toArray();
             res.send(items);
-        });
+        });      
+      
 
-        // POST API for posting Item collection
+        // API to post item
         app.post('/item', async (req, res) => {
             const item = req.body;
             const result = await itemCollection.insertOne(item);
