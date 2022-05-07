@@ -22,11 +22,11 @@ function verifyJWT(req, res, next) {
     if (err) {
       return res.status(403).send({ message: 'Forbidden access' });
     }
-    console.log('decoded', decoded);
+    // console.log('decoded', decoded);
     req.decoded = decoded;
+    next();
   });
   
-  next();
 }
 
 // connection to MongoDB
@@ -74,11 +74,11 @@ async function run() {
 
 
         // POST API to add item
-        app.post('/product', async (req, res) => {
-            const newProduct = req.body;
-            const result = await productCollection.insertOne(newProduct);
-            res.send(result);
-        });
+        // app.post('/item', async (req, res) => {
+        //     const newItem = req.body;
+        //     const result = await itemCollection.insertOne(newItem);
+        //     res.send(result);
+        // });
         
         // POST API to add input field value to quantity
         app.put("/product/:id", async (req, res) => {
