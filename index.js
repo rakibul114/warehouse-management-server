@@ -39,113 +39,121 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect();
-        const productCollection = client.db('warehouseManagement').collection('product');
-      const itemCollection = client.db("warehouseManagement").collection('item');
-      
+      await client.connect();
+      const productCollection = client
+        .db("warehouseManagement")
+        .collection("product");
+      const itemCollection = client
+        .db("warehouseManagement")
+        .collection("item");
 
       // For JWT (login)
       // AUTH
-      app.post('/login', async (req, res) => {
+      app.post("/login", async (req, res) => {
         const user = req.body;
         const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-          expiresIn: '1d'
+          expiresIn: "1d",
         });
         res.send({ accessToken });
       });
 
+      // API to get all products data
+      app.get("/product", async (req, res) => {
+        const query = {};
+        const cursor = productCollection.find(query);
+        const products = await cursor.toArray();
+        res.send(products);
+      });
 
+      // API to get single product data
+      app.get("/product/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const product = await productCollection.findOne(query);
+        res.send(product);
+      });
 
-        // API to get all products data
-        app.get('/product', async (req, res) => {
-            const query = {};
-            const cursor = productCollection.find(query);
-            const products = await cursor.toArray();
-            res.send(products);
-        });
+      // POST API to add item
+      app.post("/item", async (req, res) => {
+        const newItem = req.body;
+        const result = await itemCollection.insertOne(newItem);
+        res.send(result);
+      });
 
-        // API to get single product data
-        app.get('/product/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const product = await productCollection.findOne(query);
-            res.send(product);
-        });        
+      // POST API to add input field value to quantity
+      app.put("/product/:id", async (req, res) => {
+        const id = req.params.id;
+        const updateProduct = req.body;
+        const filter = { _id: ObjectId(id) };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            quantity: updateProduct.quantity,
+          },
+        };
+        const result = await productCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      });
 
+      // PUT API to update a product quantity
+      app.put("/product/:id", async (req, res) => {
+        const id = req.params.id;
+        const updateQuantity = req.body;
+        const filter = { _id: ObjectId(id) };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            quantity: updateQuantity.quantity,
+          },
+        };
+        const result = await productCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      });
 
-        // POST API to add item
-        // app.post('/item', async (req, res) => {
-        //     const newItem = req.body;
-        //     const result = await itemCollection.insertOne(newItem);
-        //     res.send(result);
-        // });
-        
-        // POST API to add input field value to quantity
-        app.put("/product/:id", async (req, res) => {
-          const id = req.params.id;
-          const updateProduct = req.body;
-          const filter = { _id: ObjectId(id) };
-          const options = { upsert: true };
-          const updateDoc = {
-            $set: {
-              quantity: updateProduct.quantity,
-            },
-          };
-          const result = await productCollection.updateOne(
-            filter,
-            updateDoc,
-            options
-          );
-          res.send(result);
-        });
+      // DELETE API to delete a product
+      app.delete("/product/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const result = await productCollection.deleteOne(query);
+        res.send(result);
+      });
 
-
-        // PUT API to update a product quantity
-        app.put('/product/:id', async (req, res) => {
-            const id = req.params.id;
-            const updateQuantity = req.body;
-            const filter = { _id: ObjectId(id) };
-            const options = { upsert: true };
-            const updateDoc = {
-              $set: {
-                quantity: updateQuantity.quantity,
-              },
-            };
-            const result = await productCollection.updateOne(filter, updateDoc, options);
-            res.send(result);
-        });
-
-        // DELETE API to delete a product
-        app.delete('/product/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const result = await productCollection.deleteOne(query);
-            res.send(result);
-        });
-
-        // API to get item
-      app.get('/item', verifyJWT, async (req, res) => {
+      // API to get item
+      app.get("/myitem", verifyJWT, async (req, res) => {
         const decodedEmail = req.decoded.email;
-          const email = req.query.email;
+        const email = req.query.email;
         if (email === decodedEmail) {
-              const query = { email: email };
-              const cursor = itemCollection.find(query);
-              const items = await cursor.toArray();
-              res.send(items);
+          const query = { email: email };
+          const cursor = itemCollection.find(query);
+          const myitems = await cursor.toArray();
+          res.send(myitems);
+        } else {
+          res.status(403).send({ message: "Forbidden access" });
         }
-        else {
-          res.status(403).send({ message: 'Forbidden access' });
-        }
-        });      
-      
+      });
 
-        // API to post item
-        app.post('/item', async (req, res) => {
-            const item = req.body;
-            const result = await itemCollection.insertOne(item);
-            res.send(result);
-        });
+      // API to post item
+      app.post("/myitem", async (req, res) => {
+        const myitem = req.body;
+        const result = await itemCollection.insertOne(myitem);
+        res.send(result);
+      });
 
+      // DELETE API to delete an item
+      app.delete("/myitem/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const result = await itemCollection.deleteOne(query);
+        res.send(result);
+      });
     }
     finally {
         
